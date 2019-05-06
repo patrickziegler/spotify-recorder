@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+
+
+from audiospy.watchdog import DBusWatchdog
+
+
+if __name__ == "__main__":
+    dog = DBusWatchdog()
+    dog.run()
