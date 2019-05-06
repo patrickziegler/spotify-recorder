@@ -53,13 +53,17 @@ class DBusWatchdog:
 
             self.stop_recording = Event()
 
-            print("Now playing:\n" + str(track_info) + "\n")
+            p = Process(target=recorder, args=(self.config, track_info, self.stop_recording))
+            p.start()
 
-            self._children.append(
-                Process(target=recorder, args=(self.config, track_info, self.stop_recording))
-            )
+            print("Now recording:\n" + str(track_info) + "\n")
 
-            self._children[-1].start()
+            for c in self._children:
+                if not c.is_alive():
+                    c.join()
+                    self._children.remove(c)
+
+            self._children.append(p)
 
         else:
             print("Ignoring advertisement..." + "\n")
@@ -70,8 +74,8 @@ class DBusWatchdog:
         except AttributeError:
             pass
 
-        for p in self._children:
-            p.join()
+        for c in self._children:
+            c.join()
 
     def run(self):
         bus = dbus.SessionBus()
