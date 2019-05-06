@@ -1,4 +1,4 @@
-# AudioSpy
+# :microphone: AudioSpy
 
 ### Prerequisites
 
@@ -6,12 +6,12 @@ The following packages are needed
 
 * `python` (>= 3.5)
 * `setuptools`
-* `virtualenv` (optional)
+* `virtualenv`
 * `dbus-1-devel`
 * `portaudio-devel`
 * `ffmpeg`
 
-### Build and Install
+### :hammer: Build and Install
 
 1. Clone this repository
 ```bash
