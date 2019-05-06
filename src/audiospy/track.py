@@ -20,6 +20,7 @@ from pydub import AudioSegment
 import pyaudio
 import requests
 import tempfile
+import time
 
 
 class TrackInfo:
@@ -74,7 +75,10 @@ class TrackInfo:
             return False
 
 
-def recorder(config : ConfigManager, track_info : TrackInfo, stop_recording):
+def recorder(config: ConfigManager, track_info: TrackInfo, stop_recording):
+
+    t_start = time.time()
+    timeout = float(track_info.length) / 1e6
 
     with redirect_stderr():
         pa = pyaudio.PyAudio()
@@ -95,7 +99,7 @@ def recorder(config : ConfigManager, track_info : TrackInfo, stop_recording):
 
     frames = []
 
-    while not stop_recording.is_set():
+    while not stop_recording.is_set() and not (time.time() - t_start) > timeout:
         frames.append(stream.read(config.chunk_size))
 
     stream.stop_stream()
