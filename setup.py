@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+__version__ = ""
 
 with open("src/audiospy/version.py") as fp:
     exec(fp.read())
