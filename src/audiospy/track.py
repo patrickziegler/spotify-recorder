@@ -15,29 +15,11 @@
 
 
 from audiospy.config import ConfigManager
-from audiospy.util import redirect_stderr
+from audiospy.util import redirect_stderr, get_valid_filename
 from pydub import AudioSegment
-import os
 import pyaudio
 import requests
 import tempfile
-
-
-def get_filename(track_info, prefix=""):
-
-    fn = lambda s : "".join(c for c in s if (c.isalnum() or c in "-_.() "))
-
-    if prefix == "":
-        new_folder = fn(str(track_info.album_title))
-    else:
-        new_folder = os.path.abspath(os.path.expanduser(prefix)) + os.sep + fn(str(track_info.album_title))
-
-    if not os.path.exists(new_folder):
-        os.makedirs(new_folder)
-
-    new_file = fn(str(track_info.track_number) + " - " + str(track_info.track_title)) + ".mp3"
-
-    return os.sep.join((new_folder, new_file))
 
 
 class TrackInfo:
@@ -133,7 +115,7 @@ def recorder(config : ConfigManager, track_info : TrackInfo, stop_recording):
     album_cover.write(requests.get(track_info.album_cover_url).content)
 
     segment.export(
-        get_filename(track_info, config.prefix),
+        get_valid_filename(track_info, config.prefix),
         format="mp3",
         bitrate=config.bitrate,
         tags={

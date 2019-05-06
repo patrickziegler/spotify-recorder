@@ -21,27 +21,51 @@ import argparse
 import sys
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Monitoring Spotify on D-Bus for recording currently played music")
-    parser.add_argument("prefix", type=str, nargs='?', default="", help="Output folder (optional)")
-    parser.add_argument("-b", "--bitrate", type=str, dest="bitrate", default="128k", help="MP3 Bitrate")
-    parser.add_argument("-d", "--device", type=int, dest="device", default=None, help="Audio device index")
-    parser.add_argument("--list-devices", dest="list_devices", action="store_true", default=False, help="Print list of available audio devices")
-    parser.add_argument("-v", "--version", action='version', version="AudioSpy v" + __version__ + ", Copyright (C) 2019 Patrick Ziegler")
-    args = parser.parse_args()
-
-    if args.list_devices:
-        print_available_devices()
-        sys.exit()
-
-    return args
-
-
 class ConfigManager:
 
-    def __init__(self, args=None):
-        if args is None:
-            args = parse_args()
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            description="Monitoring Spotify on D-Bus for recording currently played music"
+        )
+
+        parser.add_argument("prefix",
+            type=str,
+            nargs='?',
+            default="",
+            help="Output folder (optional)"
+        )
+
+        parser.add_argument("-b", "--bitrate",
+            type=str,
+            dest="bitrate",
+            default="128k",
+            help="MP3 Bitrate"
+        )
+
+        parser.add_argument("-d", "--device",
+            type=int,
+            dest="device",
+            default=None,
+            help="Audio device index"
+        )
+
+        parser.add_argument("--list-devices",
+            dest="list_devices",
+            action="store_true",
+            default=False,
+            help="Print list of available audio devices"
+        )
+
+        parser.add_argument("-v", "--version",
+            action='version',
+            version="AudioSpy v" + __version__ + ", Copyright (C) 2019 Patrick Ziegler"
+        )
+
+        args = parser.parse_args()
+
+        if args.list_devices:
+            print_available_devices()
+            sys.exit()
 
         self.channels = 2
         self.chunk_size = 1024
