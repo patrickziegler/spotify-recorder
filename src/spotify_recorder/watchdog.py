@@ -14,8 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from audiospy.config import ConfigManager
-from audiospy.track import TrackInfo, recorder
+from spotify_recorder.track import TrackInfo
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from multiprocessing import Process, Event
@@ -26,47 +25,44 @@ class DBusWatchdog:
 
     DBusGMainLoop(set_as_default=True)
 
-    def __init__(self, config=None):
+    def __init__(self):
         self._children = []
         self.last_track = None
         self.stop_recording = None
 
-        if config is None:
-            self.config = ConfigManager()
-        else:
-            self.config = config
-
     def _update(self, *args):
-        track_info = TrackInfo(args[1]["Metadata"])
+        track = TrackInfo(args[1]["Metadata"])
 
-        if track_info == self.last_track:
+        if track == self.last_track:
             return
 
-        self.last_track = track_info
+        self.last_track = track
 
         try:
             self.stop_recording.set()
         except AttributeError:
             pass
 
-        if track_info.is_valid():
+        if track.is_valid():
 
             self.stop_recording = Event()
 
-            p = Process(target=recorder, args=(self.config, track_info, self.stop_recording))
+            p = Process(target=track.record, args=(self.stop_recording,))
             p.start()
 
-            print("Now recording:\n" + str(track_info) + "\n")
+            print("Recording...\n" + str(track) + "\n")
 
-            for c in self._children:
-                if not c.is_alive():
-                    c.join()
-                    self._children.remove(c)
-
+            self._join_zombies()
             self._children.append(p)
 
         else:
-            print("Ignoring advertisement..." + "\n")
+            print("Ignoring ads..." + "\n")
+
+    def _join_zombies(self):
+        for c in self._children:
+            if not c.is_alive():
+                c.join()
+                self._children.remove(c)
 
     def _close(self):
         try:

@@ -14,10 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from audiospy.config import ConfigManager
-from audiospy.util import redirect_stderr, get_valid_filename
+from spotify_recorder.util import PyAudioContext, get_valid_filename
 from pydub import AudioSegment
-import pyaudio
 import requests
 import tempfile
 import time
@@ -33,6 +31,8 @@ class TrackInfo:
         "track_number",
         "track_title"
     )
+
+    config = None
 
     def __init__(self, meta):
         self.album_artist = meta["xesam:albumArtist"][0]
@@ -56,7 +56,7 @@ class TrackInfo:
             return False
 
     def __str__(self):
-        return "Artist:\t%s\nAlbum:\t%s\nTrack:\t%s\nTitle:\t%s" % (
+        return "Artist:\t\t%s\nAlbum title:\t%s\nTrack title:\t%s\nTitle number:\t%s" % (
             self.track_artist,
             self.album_title,
             self.track_number,
@@ -74,61 +74,55 @@ class TrackInfo:
         except AttributeError:
             return False
 
+    def record(self, stop_recording):
 
-def recorder(config: ConfigManager, track_info: TrackInfo, stop_recording):
+        frames = []
+        t_start = time.time()
+        timeout = float(self.length) / 1e6
 
-    t_start = time.time()
-    timeout = float(track_info.length) / 1e6
+        with PyAudioContext() as pa:
 
-    with redirect_stderr():
-        pa = pyaudio.PyAudio()
+            if self.config.device is None:
+                device_index = pa.get_default_input_device_info()["index"]
+            else:
+                device_index = self.config.device
 
-    if config.device is None:
-        device_index = pa.get_default_input_device_info()["index"]
-    else:
-        device_index = config.device
+            stream = pa.open(
+                channels=self.config.channels,
+                format=self.config.sample_format,
+                frames_per_buffer=self.config.chunk_size,
+                input=True,
+                input_device_index=device_index,
+                rate=self.config.sample_rate
+            )
 
-    stream = pa.open(
-        channels=config.channels,
-        format=config.sample_format,
-        frames_per_buffer=config.chunk_size,
-        input=True,
-        input_device_index=device_index,
-        rate=config.sample_rate
-    )
+            while not stop_recording.is_set() and not (time.time() - t_start) > timeout:
+                frames.append(stream.read(self.config.chunk_size))
 
-    frames = []
+            stream.stop_stream()
+            stream.close()
 
-    while not stop_recording.is_set() and not (time.time() - t_start) > timeout:
-        frames.append(stream.read(config.chunk_size))
+        album_cover = tempfile.NamedTemporaryFile(suffix=".jpg")
+        album_cover.write(requests.get(self.album_cover_url).content)
 
-    stream.stop_stream()
-    stream.close()
+        segment = AudioSegment(
+            data=b"".join(frames),
+            sample_width=self.config.sample_size,
+            frame_rate=self.config.sample_rate,
+            channels=self.config.channels
+        )
 
-    with redirect_stderr():
-        pa.terminate()
-
-    segment = AudioSegment(
-        data=b"".join(frames),
-        sample_width=config.sample_size,
-        frame_rate=config.sample_rate,
-        channels=config.channels
-    )
-
-    album_cover = tempfile.NamedTemporaryFile(suffix=".jpg")
-    album_cover.write(requests.get(track_info.album_cover_url).content)
-
-    segment.export(
-        get_valid_filename(track_info, config.prefix),
-        format="mp3",
-        bitrate=config.bitrate,
-        tags={
-            "album": track_info.album_title,
-            "album_artist": track_info.album_artist,
-            "artist": track_info.track_artist,
-            "grouping": track_info.album_disc_number,
-            "title": track_info.track_title,
-            "track": track_info.track_number,
-        },
-        cover=album_cover.name
-    )
+        segment.export(
+            get_valid_filename(self, self.config.prefix),
+            format="mp3",
+            bitrate=self.config.bitrate,
+            tags={
+                "album": self.album_title,
+                "album_artist": self.album_artist,
+                "artist": self.track_artist,
+                "grouping": self.album_disc_number,
+                "title": self.track_title,
+                "track": self.track_number,
+            },
+            cover=album_cover.name
+        )

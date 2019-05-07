@@ -1,4 +1,4 @@
-# :microphone: AudioSpy
+# SpotifyRecorder
 
 ### Prerequisites
 
@@ -15,7 +15,7 @@ The following packages are needed
 
 1. Clone this repository
 ```bash
-git clone https://github.com/patrickziegler/AudioSpy.git && cd AudioSpy
+git clone https://github.com/patrickziegler/SpotifyRecorder.git && cd SpotifyRecorder
 ```
 
 2. Create and activate a virtual environment

@@ -16,7 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from audiospy.watchdog import DBusWatchdog
+from spotify_recorder.config import ConfigManager
+from spotify_recorder.track import TrackInfo
+from spotify_recorder.watchdog import DBusWatchdog
+
+TrackInfo.config = ConfigManager()
 
 dog = DBusWatchdog()
 dog.run()
