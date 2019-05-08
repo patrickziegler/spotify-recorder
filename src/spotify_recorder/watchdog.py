@@ -14,10 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from spotify_recorder.track import TrackInfo
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from multiprocessing import Process, Event
+from spotify_recorder.track import TrackInfo
 import dbus
 
 

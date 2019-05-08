@@ -16,8 +16,9 @@
 
 from spotify_recorder.util import get_input_audio_devices
 from spotify_recorder.version import __version__
-import pyaudio
 import argparse
+import os
+import pyaudio
 import sys
 
 

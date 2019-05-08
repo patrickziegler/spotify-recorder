@@ -14,8 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from spotify_recorder.util import PyAudioContext, get_valid_filename
 from pydub import AudioSegment
+from spotify_recorder.util import PyAudioContext, get_valid_filename
 import requests
 import tempfile
 import time
@@ -49,7 +49,6 @@ class TrackInfo:
             for k in TrackInfo._main_keys:
                 if getattr(self, k) != getattr(other, k):
                     return False
-
             return True
 
         except AttributeError:
@@ -68,7 +67,6 @@ class TrackInfo:
             for k in TrackInfo._main_keys:
                 if getattr(self, k) == "":
                     return False
-
             return True
 
         except AttributeError:

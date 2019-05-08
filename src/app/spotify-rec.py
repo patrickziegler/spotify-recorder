@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Copyright (C) 2019 Patrick Ziegler
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +15,6 @@
 
 
 if __name__ == "__main__":
-
     from spotify_recorder.config import ConfigManager
     from spotify_recorder.track import TrackInfo
     from spotify_recorder.watchdog import DBusWatchdog
@@ -25,4 +22,4 @@ if __name__ == "__main__":
     TrackInfo.config = ConfigManager()
 
     dog = DBusWatchdog()
-    dog.run()
+    dog.run()  # wuff, wuff!
