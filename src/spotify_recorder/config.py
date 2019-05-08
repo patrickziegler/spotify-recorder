@@ -64,8 +64,10 @@ class ConfigManager:
         args = parser.parse_args()
 
         if args.list_devices:
+
             for index, name in get_input_audio_devices():
                 print(str(index) + "\t" + name)
+
             sys.exit(0)
 
         self.channels = 2

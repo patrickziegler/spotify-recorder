@@ -16,11 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from spotify_recorder.config import ConfigManager
-from spotify_recorder.track import TrackInfo
-from spotify_recorder.watchdog import DBusWatchdog
+if __name__ == "__main__":
 
-TrackInfo.config = ConfigManager()
+    from spotify_recorder.config import ConfigManager
+    from spotify_recorder.track import TrackInfo
+    from spotify_recorder.watchdog import DBusWatchdog
 
-dog = DBusWatchdog()
-dog.run()
+    TrackInfo.config = ConfigManager()
+
+    dog = DBusWatchdog()
+    dog.run()

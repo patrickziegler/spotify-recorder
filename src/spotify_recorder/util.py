@@ -21,10 +21,7 @@ import sys
 
 
 @contextmanager
-def redirect_stderr(to=os.devnull):
-    """
-    https://stackoverflow.com/a/17954769
-    """
+def redirect_stderr(to=os.devnull):  # https://stackoverflow.com/a/17954769
     fd = sys.stderr.fileno()
 
     def _redirect_stderr(to):
@@ -52,6 +49,7 @@ class PyAudioContext:
     def __enter__(self):
         with redirect_stderr():
             self.pya = pyaudio.PyAudio()
+
         return self.pya
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -60,20 +58,27 @@ class PyAudioContext:
 
 
 def get_input_audio_devices():
+
     with PyAudioContext() as pa:
         k = 0
+
         for i in range(pa.get_device_count()):
             device_info = pa.get_device_info_by_index(i)
+
             if device_info["maxInputChannels"] > 0:
                 yield k, device_info["name"]
+
                 k += 1
 
 
 def print_all_audio_devices():
     print("Index\tIn\tOut\tName")
+
     with PyAudioContext() as pa:
+
         for i in range(pa.get_device_count()):
             device_info = pa.get_device_info_by_index(i)
+
             print(
                 "\t".join(
                     (
