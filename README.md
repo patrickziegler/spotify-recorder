@@ -2,10 +2,10 @@
 
 ### Features
 
-This software enables you to **record currently played music** on the Spotify desktop client in real time.
+This software enables **recording currently played music** on the Spotify desktop client in real time.
 The generated files are **tagged with ID3-tags** and also **contain the album artwork** as seen in Spotify.
 
-As the information about currently played songs is gathered by what the Spotify client broadcasts on the [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/https://www.freedesktop.org/wiki/Software/dbus/), this software **only runs on Linux** based operating systems. 
+As the information about currently played music is gathered by what the Spotify client broadcasts on the [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/https://www.freedesktop.org/wiki/Software/dbus/), this software **only runs on Linux** based operating systems. 
 
 ### Prerequisites
 
@@ -29,7 +29,7 @@ python3 -m virtualenv env --system-site-packages
 source env/bin/activate
 ```
 
-3. Build and install the package and its dependencies (in virtual environment). You may need to install the development files of `dbus-1` and `portaudio` for this.
+3. Build and install the package and its dependencies (in virtual environment). You may need to install the development files of `dbus-1` and `portaudio` for this
 ```bash
 pip install -r requirements.txt
 python setup.py install
