@@ -1,14 +1,19 @@
-# SpotifyRecorder
+# :radio: SpotifyRecorder
+
+### Features
+
+This software enables you to **record currently played music** on the Spotify desktop client in real time.
+The generated files are **tagged with ID3-tags** and also **contain the album artwork** as seen in Spotify.
+
+As the information about currently played songs is gathered by what the Spotify client broadcasts on the [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/https://www.freedesktop.org/wiki/Software/dbus/), this software **only runs on Linux** based operating systems. 
 
 ### Prerequisites
 
-The following packages are needed
+The following packages are needed:
 
 * `python` (>= 3.5)
 * `setuptools`
-* `virtualenv`
-* `dbus-1-devel`
-* `portaudio-devel`
+* `virtualenv` (for local deployment)
 * `ffmpeg`
 
 ### :hammer: Build and Install
@@ -20,21 +25,23 @@ git clone https://github.com/patrickziegler/SpotifyRecorder.git && cd SpotifyRec
 
 2. Create and activate a virtual environment
 ```bash
-export PREFIX=.
-python3 -m virtualenv "${PREFIX}/env" --system-site-packages
-source "${PREFIX}/env/bin/activate"
+python3 -m virtualenv env --system-site-packages
+source env/bin/activate
 ```
 
-3. Install dependencies (in virtual environment) and create symbolic links to this package
+3. Build and install the package and its dependencies (in virtual environment). You may need to install the development files of `dbus-1` and `portaudio` for this.
 ```bash
 pip install -r requirements.txt
-python setup.py develop --prefix "${PREFIX}/env"
-```
-
-4. System-wide installation
-```bash
 python setup.py install
 ```
+
+4. Instead of a virtual deployment, you can also do a system wide installation after installing the packages stated in `requirements.txt`
+
+### Usage
+
+After the installation is finished, the command `spotify-rec` should be available at your terminal.
+
+After starting the Spotify client, run `spotify-rec` with your desired output location. Then just start playing the songs to be recorded, everything else is done automatically.
 
 ## Authors
 
