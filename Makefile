@@ -13,5 +13,5 @@ clean:
 
 venv:
 	$(MAKE) clean
-	virtualenv --python=/usr/bin/python3 --system-site-packages .venv
+	virtualenv --python=/usr/bin/python3 .venv
 	bash -c "source .venv/bin/activate && pip install -r requirements.txt"

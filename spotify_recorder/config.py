@@ -14,12 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from spotify_recorder.recorder import get_input_audio_devices
 import argparse
 import os
-import pyaudio
 import sys
 
+import pyaudio
+
+from spotify_recorder.recorder import get_input_audio_devices
 
 __version__ = "1.0.1"
 

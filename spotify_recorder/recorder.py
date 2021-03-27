@@ -14,13 +14,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from contextlib import contextmanager
+import contextlib
 import os
-import pyaudio
 import sys
 
+import pyaudio
 
-@contextmanager
+
+@contextlib.contextmanager
 def _redirect_stderr(to=os.devnull):  # https://stackoverflow.com/a/17954769
     fd = sys.stderr.fileno()
 
@@ -89,6 +90,3 @@ def print_all_audio_devices():
                     )
                 )
             )
-
-
-

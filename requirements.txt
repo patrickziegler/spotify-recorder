@@ -1,5 +1,5 @@
-dbus-python
 PyAudio
 pydub
-requests
 PyGObject
+pydbus
+requests

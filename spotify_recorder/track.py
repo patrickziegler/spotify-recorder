@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from pydub import AudioSegment
-from spotify_recorder.recorder import PyAudioContext
-import requests
 import tempfile
 import time
+
+import pydub
+import requests
+
+from spotify_recorder.recorder import PyAudioContext
 
 
 def get_valid_filename(track_info, prefix=""):
@@ -137,7 +139,7 @@ class TrackInfo:
         album_cover = tempfile.NamedTemporaryFile(suffix=".jpg")
         album_cover.write(requests.get(self.album_cover_url).content)
 
-        segment = AudioSegment(
+        segment = pydub.AudioSegment(
             data=b"".join(frames),
             sample_width=self.config.sample_size,
             frame_rate=self.config.sample_rate,
