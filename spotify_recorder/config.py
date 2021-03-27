@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Patrick Ziegler
+# Copyright (C) 2019-2021 Patrick Ziegler
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,12 +14,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from spotify_recorder.util import get_input_audio_devices
-from spotify_recorder.version import __version__
+from spotify_recorder.recorder import get_input_audio_devices
 import argparse
 import os
 import pyaudio
 import sys
+
+
+__version__ = "1.0.1"
 
 
 class ConfigManager:
@@ -31,7 +33,7 @@ class ConfigManager:
 
         parser.add_argument("prefix",
             type=str,
-            nargs='?',
+            nargs="?",
             default="",
             help="Output folder (optional)"
         )
@@ -59,7 +61,7 @@ class ConfigManager:
 
         parser.add_argument("-v", "--version",
             action='version',
-            version="SpotifyRecorder v" + __version__ + ", Copyright (C) 2019 Patrick Ziegler"
+            version="SpotifyRecorder v" + __version__ + ", Copyright (C) 2019-2021 Patrick Ziegler"
         )
 
         args = parser.parse_args()

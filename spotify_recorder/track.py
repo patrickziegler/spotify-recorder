@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Patrick Ziegler
+# Copyright (C) 2019-2021 Patrick Ziegler
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,12 +13,46 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 from pydub import AudioSegment
-from spotify_recorder.util import PyAudioContext, get_valid_filename
+from spotify_recorder.recorder import PyAudioContext
 import requests
 import tempfile
 import time
+
+
+def get_valid_filename(track_info, prefix=""):
+
+    def _skip_invalid_chars(s):
+        return "".join(c for c in s if c.isalnum() or c in "-_.() ")
+
+    new_file = _skip_invalid_chars(
+        " - ".join(
+            (
+                str(track_info.track_number),
+                str(track_info.track_title)
+            )
+        )
+    )
+
+    if prefix == "":
+        new_folder = _skip_invalid_chars(str(track_info.album_title))
+    else:
+        new_folder = os.sep.join(
+            (
+                os.path.abspath(os.path.expanduser(prefix)),
+                _skip_invalid_chars(str(track_info.album_title))
+            )
+        )
+
+    if not os.path.exists(new_folder):
+        os.makedirs(new_folder)
+
+    return os.sep.join(
+        (
+            new_folder,
+            new_file + ".mp3"
+        )
+    )
 
 
 class TrackInfo:

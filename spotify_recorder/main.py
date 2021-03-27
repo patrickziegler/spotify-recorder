@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Patrick Ziegler
+# Copyright (C) 2021 Patrick Ziegler
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,4 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-__version__ = "1.0.1"
+from spotify_recorder.config import ConfigManager
+from spotify_recorder.track import TrackInfo
+from spotify_recorder.watchdog import DBusWatchdog
+
+
+def main():
+    TrackInfo.config = ConfigManager()
+
+    dog = DBusWatchdog()
+    dog.run()

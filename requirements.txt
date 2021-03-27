@@ -2,3 +2,4 @@ dbus-python
 PyAudio
 pydub
 requests
+PyGObject
