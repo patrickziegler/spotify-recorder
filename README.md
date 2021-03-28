@@ -2,49 +2,44 @@
 
 ### Features
 
-This software allows for **recording currently played music** on the Spotify desktop client in real time.
+- This tool allows for **recording currently played music** on the Spotify desktop or web client in real time
+- The generated files are **tagged with ID3-tags** and contain **album artwork** as seen in Spotify
+- The information about currently played music is gathered by [what is broadcasted](https://www.freedesktop.org/wiki/Specifications/mpris-spec/metadata/) on the [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/)
 
-The generated files are **tagged with ID3-tags** and also **contain the album artwork** as seen in Spotify.
+## Installation
 
-As the information about currently played music is gathered by what the Spotify client broadcasts on the [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/), this software **only runs on Linux** based operating systems.
+- Use the following commands to install `spotify-rec` for the current user
 
-## Getting started
+  ```sh
+  pip3 install -r requirements.txt --user
+  python3 setup.py install --user
+  ```
 
-### Prerequisites
+- You can repeat this also for updating the repo with `git pull`
 
-The following packages are needed:
+## Usage
 
-* `python` (>= 3.5)
-* `setuptools`
-* `virtualenv` (for local deployment)
-* `ffmpeg`
+- After the installation is finished, the command `spotify-rec` should be available at your terminal.
+- After starting the Spotify desktop or web client, run `spotify-rec` with your desired output location
+- Then just start playing the songs to be recorded, everything else is done automatically
+- Use `spotify-rec -h` to get more information about the interface
 
-### :hammer: Build and Install
+## Example
 
-1. Clone this repository
-```bash
-git clone https://github.com/patrickziegler/SpotifyRecorder.git && cd SpotifyRecorder
+The output of an example session can be seen below:
+
+```sh
+$ spotify-rec ./rec
+Watchdog is monitoring 'org.mpris.MediaPlayer2.firefox.instance1680'
+New track 'Soopertrack' is playing
+Start recording 'Soopertrack'
+Cached album cover '/tmp/spotify-rec_album_cover_676ee20be59b46918cc091ceeb025843.png'
+New track 'Schmedding' is playing
+Start recording 'Schmedding'
+Cached album cover '/tmp/spotify-rec_album_cover_9e6c322441b14a18b3a0428d8edd3820.png'
+Successfully exported './rec/Soopertrack - Soopertrack.mp3'
+^CSuccessfully exported './rec/Schmedding 8000 - Schmedding.mp3'
 ```
-
-2. Create and activate a virtual environment
-```bash
-python3 -m virtualenv .venv --system-site-packages
-source .venv/bin/activate
-```
-
-3. Build and install the package and its dependencies (in virtual environment). You may need to install the development files of `dbus-1` and `portaudio` for this
-```bash
-pip install -r requirements.txt
-python setup.py install
-```
-
-4. Instead of a virtual deployment, you can also do a system wide installation after installing the packages stated in `requirements.txt`
-
-### Usage
-
-After the installation is finished, the command `spotify-rec` should be available at your terminal.
-
-After starting the Spotify client, run `spotify-rec` with your desired output location. Then just start playing the songs to be recorded, everything else is done automatically.
 
 ## Authors
 
