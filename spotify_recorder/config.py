@@ -13,15 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# -------------------------------------------------
-# ----->   W O R K   I N   P R O G R E S S   <-----
-# -------------------------------------------------
-
 import argparse
 import os
 import sys
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 
 class ConfigManager:
@@ -32,38 +28,34 @@ class ConfigManager:
         )
 
         parser.add_argument("prefix",
-            type=str,
-            nargs="?",
-            default="",
-            help="Output folder (optional)"
-        )
+                            type=str,
+                            nargs="?",
+                            default="",
+                            help="Output folder (optional)"
+                            )
+
+        parser.add_argument("-f", "--format",
+                            type=str,
+                            dest="format",
+                            default="mp3",
+                            help="Format for file conversion"
+                            )
 
         parser.add_argument("-b", "--bitrate",
-            type=str,
-            dest="bitrate",
-            default="128k",
-            help="MP3 Bitrate"
-        )
+                            type=str,
+                            dest="bitrate",
+                            default="128k",
+                            help="Bitrate for file conversion"
+                            )
 
-        parser.add_argument("-d", "--device",
-            type=int,
-            dest="device",
-            default=None,
-            help="Audio device index"
-        )
-
-        parser.add_argument("-v", "--version",
-            action='version',
-            version="SpotifyRecorder v" + __version__ + ", Copyright (C) 2019-2021 Patrick Ziegler"
-        )
+        parser.add_argument("--version",
+                            action='version',
+                            version="SpotifyRecorder v" + __version__ +
+                            ", Copyright (C) 2019-2021 Patrick Ziegler"
+                            )
 
         args = parser.parse_args()
 
-        self.channels = 2
-        self.chunk_size = 1024
-        self.bitrate = args.bitrate
-        self.device = args.device
         self.prefix = args.prefix
-        self.sample_rate = 44100
-        #self.sample_format = pyaudio.paInt16
-        #self.sample_size = pyaudio.get_sample_size(self.sample_format)
+        self.format = args.format
+        self.bitrate = args.bitrate

@@ -19,6 +19,8 @@ import shutil
 import tempfile
 import uuid
 
+import requests
+
 
 class TrackInfo:
 
@@ -42,7 +44,7 @@ class TrackInfo:
     def getattr_joined(self, key, sep=","):
         try:
             return sep.join(self.metadata[key])
-        except (AttributeError, IndexError):
+        except (KeyError, IndexError):
             return None
 
     def __eq__(self, other):
@@ -51,11 +53,11 @@ class TrackInfo:
                 if self.metadata[key] != other.metadata[key]:
                     return False
             return True
-        except AttributeError:
+        except KeyError:
             return False
 
     def __str__(self):
-        return "Title:\t%s" % (self.getattr("xesam:title"))
+        return self.getattr("xesam:title")
 
     def as_dict(self):
         tags = {
@@ -68,14 +70,13 @@ class TrackInfo:
         }
         return {k: v for k, v in tags.items() if v is not None}
 
-    def as_filename(self, sep="_"):
+    def as_filename(self, sep=" - "):
         def _sanitize(s):
             return "".join(c for c in s if c.isalnum() or c in "-_.() ")
         items = [
             self.getattr("xesam:album"),
             self.getattr("xesam:trackNumber"),
             self.getattr("xesam:title"),
-            uuid.uuid4().hex[:8],
         ]
         return sep.join([_sanitize(item) for item in items if item is not None])
 
@@ -90,7 +91,7 @@ class TrackInfo:
 
         album_cover = os.path.join(
             tempfile.gettempdir(),
-            "spotify-rec_cover_%s" % uuid.uuid4().hex[:32]
+            "spotify-rec_album_cover_%s" % uuid.uuid4().hex[:32]
         )
 
         if album_cover_url.startswith("file://"):
@@ -105,10 +106,10 @@ class TrackInfo:
             answ = requests.get(album_cover_url).content
             # TODO: find extension in header information of previous request
             album_cover += ".jpg"
-            with open(album_cover, "b") as fd:
+            with open(album_cover, "wb") as fd:
                 fd.write(answ)
 
-        print("Found album cover (%s)" % self.album_cover)
+        print("Cached album cover '%s'" % album_cover)
         self.album_cover = album_cover
 
     def update(self, other):

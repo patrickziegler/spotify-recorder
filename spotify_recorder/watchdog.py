@@ -76,7 +76,7 @@ class DBusWatchdog:
             print("Ignoring ads.." + "\n")
             return
 
-        print("New track is playing:\n%s" % str(track))
+        print("New track '%s' is playing" % str(track))
 
         # TODO: will the previous object be garbage collected while `stop` is still being executed?
         self.current_recorder = AsyncRecorder(track, self.config)
