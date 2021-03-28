@@ -13,12 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-import multiprocessing as mp
-
 import pydbus
 from gi.repository import GLib
 
+from spotify_recorder.recorder import AsyncRecorder
 from spotify_recorder.track import TrackInfo
 
 
@@ -56,49 +54,36 @@ def bus_name_filter_default(names):
 
 class DBusWatchdog:
 
-    def __init__(self, bus, name):
-        self.children = []
-        self.current_track = None
-        self.current_track_stop = mp.Event()
+    def __init__(self, config):
+        self.current_track = TrackInfo()
+        self.current_recorder = AsyncRecorder(self.current_track, config)
+        self.config = config
 
-    def update(self, interface, properties, *args):
+    def onPropertiesChanged(self, interface, properties, *args):
         try:
             track = TrackInfo(properties["Metadata"])
         except KeyError:
             return
 
         if track == self.current_track:
+            self.current_track.update(track)
             return
 
         self.current_track = track
-        self.current_track_stop.set()
+        self.current_recorder.stop()
 
         if not track.is_valid():
             print("Ignoring ads.." + "\n")
             return
 
-        self.current_track_stop = mp.Event()
+        print("New track is playing:\n%s" % str(track))
 
-        p = mp.Process(target=track.record, args=(self.current_track_stop,))
-        p.start()
-
-        print("Recording..\n" + str(track) + "\n")
-
-        self.join_zombies()
-        self.children.append(p)
-
-    def join_zombies(self):
-        zombies = [child for child in self.children if not child.is_alive()]
-
-        for zombie in zombies:
-            self.children.remove(zombie)
-            zombie.join()
+        # TODO: will the previous object be garbage collected while `stop` is still being executed?
+        self.current_recorder = AsyncRecorder(track, self.config)
+        self.current_recorder.start()
 
     def close(self):
-        self.current_track_stop.set()
-
-        for child in self.children:
-            child.join()
+        self.current_recorder.stop()
 
     def watch(self, bus=None, bus_name_filter=None):
         if bus is None:
@@ -114,7 +99,7 @@ class DBusWatchdog:
         print("Watchdog is monitoring '%s'" % bus_name)
 
         mpris = bus.get(bus_name, "/org/mpris/MediaPlayer2")
-        mpris.PropertiesChanged.connect(self.update)
+        mpris.PropertiesChanged.connect(self.onPropertiesChanged)
 
         try:
             loop = GLib.MainLoop()

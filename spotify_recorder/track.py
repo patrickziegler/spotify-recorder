@@ -13,150 +13,112 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+import pathlib
+import shutil
 import tempfile
-import time
-
-import pydub
-import requests
-
-from spotify_recorder.recorder import PyAudioContext
-
-
-def get_valid_filename(track_info, prefix=""):
-
-    def _skip_invalid_chars(s):
-        return "".join(c for c in s if c.isalnum() or c in "-_.() ")
-
-    new_file = _skip_invalid_chars(
-        " - ".join(
-            (
-                str(track_info.track_number),
-                str(track_info.track_title)
-            )
-        )
-    )
-
-    if prefix == "":
-        new_folder = _skip_invalid_chars(str(track_info.album_title))
-    else:
-        new_folder = os.sep.join(
-            (
-                os.path.abspath(os.path.expanduser(prefix)),
-                _skip_invalid_chars(str(track_info.album_title))
-            )
-        )
-
-    if not os.path.exists(new_folder):
-        os.makedirs(new_folder)
-
-    return os.sep.join(
-        (
-            new_folder,
-            new_file + ".mp3"
-        )
-    )
+import uuid
 
 
 class TrackInfo:
 
-    _main_keys = (
-        "album_artist",
-        "album_disc_number",
-        "album_title",
-        "track_artist",
-        "track_number",
-        "track_title"
-    )
+    DEFAULT_METADATA = {
+        "xesam:album": "",
+        "xesam:artist": ["", ],
+        "xesam:title": "",
+    }
 
-    config = None
+    def __init__(self, metadata={}):
+        self.album_cover = None
+        self.metadata = dict(self.DEFAULT_METADATA)
+        self.metadata.update(metadata)
 
-    def __init__(self, meta):
-        self.album_artist = meta["xesam:albumArtist"][0]
-        self.album_cover_url = meta["mpris:artUrl"]
-        self.album_disc_number = meta["xesam:discNumber"]
-        self.album_title = meta["xesam:album"]
-        self.length = int(meta["mpris:length"])
-        self.track_artist = meta["xesam:artist"][0]
-        self.track_number = meta["xesam:trackNumber"]
-        self.track_title = meta["xesam:title"]
+    def getattr(self, key):
+        try:
+            return self.metadata[key]
+        except KeyError:
+            return None
+
+    def getattr_joined(self, key, sep=","):
+        try:
+            return sep.join(self.metadata[key])
+        except (AttributeError, IndexError):
+            return None
 
     def __eq__(self, other):
         try:
-            for k in TrackInfo._main_keys:
-                if getattr(self, k) != getattr(other, k):
+            for key in self.DEFAULT_METADATA:
+                if self.metadata[key] != other.metadata[key]:
                     return False
             return True
-
         except AttributeError:
             return False
 
     def __str__(self):
-        return "Artist:\t\t%s\nAlbum title:\t%s\nTrack title:\t%s\nTitle number:\t%s" % (
-            self.track_artist,
-            self.album_title,
-            self.track_number,
-            self.track_title
+        return "Title:\t%s" % (self.getattr("xesam:title"))
+
+    def as_dict(self):
+        tags = {
+            "album": self.getattr("xesam:album"),
+            "album_artist": self.getattr_joined("xesam:albumArtist"),
+            "artist": self.getattr_joined("xesam:artist"),
+            "grouping": self.getattr("xesam:discNumber"),
+            "title": self.getattr("xesam:title"),
+            "track": self.getattr("xesam:trackNumber"),
+        }
+        return {k: v for k, v in tags.items() if v is not None}
+
+    def as_filename(self, sep="_"):
+        def _sanitize(s):
+            return "".join(c for c in s if c.isalnum() or c in "-_.() ")
+        items = [
+            self.getattr("xesam:album"),
+            self.getattr("xesam:trackNumber"),
+            self.getattr("xesam:title"),
+            uuid.uuid4().hex[:8],
+        ]
+        return sep.join([_sanitize(item) for item in items if item is not None])
+
+    def fetch_album_cover(self):
+        if self.album_cover is not None:
+            return
+
+        album_cover_url = self.getattr("mpris:artUrl")
+
+        if album_cover_url is None:
+            return
+
+        album_cover = os.path.join(
+            tempfile.gettempdir(),
+            "spotify-rec_cover_%s" % uuid.uuid4().hex[:32]
         )
+
+        if album_cover_url.startswith("file://"):
+            # TODO: test if file really exists and proper exception handling
+            path = album_cover_url[len("file://"):]
+            _, ext = os.path.splitext(path)
+            album_cover += ext
+            shutil.copy2(path, album_cover)
+
+        else:
+            # TODO: proper exception handling
+            answ = requests.get(album_cover_url).content
+            # TODO: find extension in header information of previous request
+            album_cover += ".jpg"
+            with open(album_cover, "b") as fd:
+                fd.write(answ)
+
+        print("Found album cover (%s)" % self.album_cover)
+        self.album_cover = album_cover
+
+    def update(self, other):
+        self.metadata.update(other.metadata)
+        self.fetch_album_cover()
 
     def is_valid(self):
-        try:
-            for k in TrackInfo._main_keys:
-                if getattr(self, k) == "":
-                    return False
-            return True
+        return self != TrackInfo()
 
-        except AttributeError:
-            return False
-
-    def record(self, stop_recording):
-
-        frames = []
-        t_start = time.time()
-        timeout = float(self.length) / 1e6
-
-        with PyAudioContext() as pa:
-
-            if self.config.device is None:
-                device_index = pa.get_default_input_device_info()["index"]
-            else:
-                device_index = self.config.device
-
-            stream = pa.open(
-                channels=self.config.channels,
-                format=self.config.sample_format,
-                frames_per_buffer=self.config.chunk_size,
-                input=True,
-                input_device_index=device_index,
-                rate=self.config.sample_rate
-            )
-
-            while not stop_recording.is_set() and not (time.time() - t_start) > timeout:
-                frames.append(stream.read(self.config.chunk_size))
-
-            stream.stop_stream()
-            stream.close()
-
-        album_cover = tempfile.NamedTemporaryFile(suffix=".jpg")
-        album_cover.write(requests.get(self.album_cover_url).content)
-
-        segment = pydub.AudioSegment(
-            data=b"".join(frames),
-            sample_width=self.config.sample_size,
-            frame_rate=self.config.sample_rate,
-            channels=self.config.channels
-        )
-
-        segment.export(
-            get_valid_filename(self, self.config.prefix),
-            format="mp3",
-            bitrate=self.config.bitrate,
-            tags={
-                "album": self.album_title,
-                "album_artist": self.album_artist,
-                "artist": self.track_artist,
-                "grouping": self.album_disc_number,
-                "title": self.track_title,
-                "track": self.track_number,
-            },
-            cover=album_cover.name
-        )
+    def cleanup(self):
+        if self.album_cover is not None:
+            path = pathlib.Path(self.album_cover)
+            path.unlink()

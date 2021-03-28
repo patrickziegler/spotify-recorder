@@ -13,80 +13,82 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# -------------------------------------------------
+# ----->   W O R K   I N   P R O G R E S S   <-----
+# -------------------------------------------------
 
-import contextlib
 import os
-import sys
+import tempfile
+import threading
+import time
 
-import pyaudio
+import requests
 
+from spotify_recorder.track import TrackInfo
 
-@contextlib.contextmanager
-def _redirect_stderr(to=os.devnull):  # https://stackoverflow.com/a/17954769
-    fd = sys.stderr.fileno()
-
-    def _redirect_stderr(to):
-        sys.stderr.close()
-        os.dup2(to.fileno(), fd)
-        sys.stderr = os.fdopen(fd, 'w')
-
-    with os.fdopen(os.dup(fd), 'w') as old_stderr:
-
-        with open(to, 'w') as file:
-            _redirect_stderr(to=file)
-
-        try:
-            yield
-
-        finally:
-            _redirect_stderr(to=old_stderr)
+# "mpris:artUrl",
+# "mpris:length",
 
 
-class PyAudioContext:
+class AsyncRecorder:
 
-    def __init__(self):
-        self.pya = None
+    def __init__(self, track, config):
+        self.config = config
+        self.data = None
+        self.interrupt = threading.Event()
+        self.track = track
 
-    def __enter__(self):
-        with _redirect_stderr():
-            self.pya = pyaudio.PyAudio()
+    def _record(self):
+        print("Start recording:\t%s" % str(self.track))
 
-        return self.pya
+        while not self.interrupt.is_set():
+            time.sleep(0.1)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        with _redirect_stderr():
-            self.pya.terminate()
+        filename = self.track.as_filename()
+        os.makedirs(self.config.prefix, exist_ok=True)
+        with open(os.path.join(self.config.prefix, filename), "w") as fd:
+            print("Writing to %s:\t%s" % (filename, str(self.track)))
+            fd.write("silence\n")
 
+        print("Done recording:\t%s" % str(self.track))
 
-def get_input_audio_devices():
+    def _export(self):
+        print("Done exporting:\t%s" % str(self.track))
 
-    with PyAudioContext() as pa:
-        k = 0
+        # segment = pydub.AudioSegment(
+        #    data=b"".join(frames),
+        #    sample_width=self.config.sample_size,
+        #    frame_rate=self.config.sample_rate,
+        #    channels=self.config.channels
+        # )
 
-        for i in range(pa.get_device_count()):
-            device_info = pa.get_device_info_by_index(i)
+        # segment.export(
+        #    get_valid_filename(self, self.config.prefix),
+        #    format="mp3",
+        #    bitrate=self.config.bitrate,
+        #    tags={
+        #        "album": self.album_title,
+        #        "album_artist": self.album_artist,
+        #        "artist": self.track_artist,
+        #        "grouping": self.album_disc_number,
+        #        "title": self.track_title,
+        #        "track": self.track_number,
+        #    },
+        #    cover=album_cover.name
+        # )
 
-            if device_info["maxInputChannels"] > 0:
-                yield k, device_info["name"]
+        print("Start exporting:\t%s" % str(self.track))
 
-                k += 1
+        self.track.cleanup()
 
+    def start(self):
 
-def print_all_audio_devices():
-    print("Index\tIn\tOut\tName")
+        def _async_run():
+            self._record()
+            self._export()
 
-    with PyAudioContext() as pa:
+        thread = threading.Thread(target=_async_run)
+        thread.start()
 
-        for i in range(pa.get_device_count()):
-            device_info = pa.get_device_info_by_index(i)
-
-            print(
-                "\t".join(
-                    (
-                        str(device_info["index"]),
-                        str(device_info["maxInputChannels"]),
-                        str(device_info["maxOutputChannels"]),
-                        str(device_info["name"]),
-                    )
-                )
-            )
+    def stop(self):
+        self.interrupt.set()

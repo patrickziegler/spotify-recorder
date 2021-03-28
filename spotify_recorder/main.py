@@ -15,12 +15,9 @@
 
 
 from spotify_recorder.config import ConfigManager
-from spotify_recorder.track import TrackInfo
 from spotify_recorder.watchdog import DBusWatchdog
 
 
 def main():
-    TrackInfo.config = ConfigManager()
-
-    dog = DBusWatchdog()
-    dog.run()
+    dog = DBusWatchdog(config=ConfigManager())
+    dog.watch()

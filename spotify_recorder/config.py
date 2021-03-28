@@ -13,14 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# -------------------------------------------------
+# ----->   W O R K   I N   P R O G R E S S   <-----
+# -------------------------------------------------
 
 import argparse
 import os
 import sys
-
-import pyaudio
-
-from spotify_recorder.recorder import get_input_audio_devices
 
 __version__ = "1.0.1"
 
@@ -53,13 +52,6 @@ class ConfigManager:
             help="Audio device index"
         )
 
-        parser.add_argument("--list-devices",
-            dest="list_devices",
-            action="store_true",
-            default=False,
-            help="Print list of available audio devices"
-        )
-
         parser.add_argument("-v", "--version",
             action='version',
             version="SpotifyRecorder v" + __version__ + ", Copyright (C) 2019-2021 Patrick Ziegler"
@@ -67,18 +59,11 @@ class ConfigManager:
 
         args = parser.parse_args()
 
-        if args.list_devices:
-
-            for index, name in get_input_audio_devices():
-                print(str(index) + "\t" + name)
-
-            sys.exit(0)
-
         self.channels = 2
         self.chunk_size = 1024
         self.bitrate = args.bitrate
         self.device = args.device
         self.prefix = args.prefix
         self.sample_rate = 44100
-        self.sample_format = pyaudio.paInt16
-        self.sample_size = pyaudio.get_sample_size(self.sample_format)
+        #self.sample_format = pyaudio.paInt16
+        #self.sample_size = pyaudio.get_sample_size(self.sample_format)
