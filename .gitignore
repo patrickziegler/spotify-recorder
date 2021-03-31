@@ -1,8 +1,5 @@
 __pycache__/
-*.py[cod]
-*$py.class
-*.egg-*/
+build/
+dist/
+*.egg-info/
 .venv/
-.vscode/
-.idea/
-*.user
