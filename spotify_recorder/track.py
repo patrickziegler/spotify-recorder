@@ -84,7 +84,11 @@ class TrackInfo:
         if self.album_cover is not None:
             return
 
-        album_cover_url = self.getattr("mpris:artUrl")
+        # workaround as explained in https://community.spotify.com/t5/Desktop-Linux/MPRIS-cover-art-url-file-not-found/m-p/4929877/highlight/true#M19504
+        album_cover_url = self.getattr("mpris:artUrl").replace(
+            "https://open.spotify.com/image/",
+            "https://i.scdn.co/image/"
+        )
 
         if album_cover_url is None:
             return
@@ -95,7 +99,8 @@ class TrackInfo:
         )
 
         if album_cover_url.startswith("file://"):
-            # TODO: test if file really exists and proper exception handling
+            # TODO: test if file really exists
+            # TODO: proper exception handling
             path = album_cover_url[len("file://"):]
             _, ext = os.path.splitext(path)
             album_cover += ext
@@ -103,12 +108,14 @@ class TrackInfo:
 
         else:
             # TODO: proper exception handling
-            answ = requests.get(album_cover_url).content
-            # TODO: find extension in header information of previous request
-            album_cover += ".jpg"
+            answ = requests.get(album_cover_url)
+            if not answ.ok:
+                return
+            album_cover += "." + answ.headers["Content-Type"].rsplit("/")[-1]
             with open(album_cover, "wb") as fd:
-                fd.write(answ)
+                fd.write(answ.content)
 
+        # TODO: ensure removal of temporary files
         print("Cached album cover '%s'" % album_cover)
         self.album_cover = album_cover
 
