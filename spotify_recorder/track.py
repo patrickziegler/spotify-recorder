@@ -78,7 +78,7 @@ class TrackInfo:
             self.getattr("xesam:trackNumber"),
             self.getattr("xesam:title"),
         ]
-        return sep.join([_sanitize(item) for item in items if item is not None])
+        return sep.join([_sanitize(str(item)) for item in items if item is not None])
 
     def fetch_album_cover(self):
         if self.album_cover is not None:
