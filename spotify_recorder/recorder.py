@@ -25,6 +25,9 @@ from spotify_recorder.track import TrackInfo
 
 class AsyncRecorder:
 
+    # static variable for measuring the delay between
+    # receiving the signal from dbus and starting
+    # to record the track
     t0 = 0
 
     def __init__(self, track, config):
@@ -35,7 +38,6 @@ class AsyncRecorder:
         self.track = track
 
     def _record(self):
-
         # TODO: make audio device configurable
         with sd.RawInputStream(channels=2, dtype="int16") as stream:
             print("Start recording '%s' (after %.3f s)" %
