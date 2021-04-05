@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
+
 import pydbus
 from gi.repository import GLib
 
@@ -60,6 +62,8 @@ class DBusWatchdog:
         self.config = config
 
     def onPropertiesChanged(self, interface, properties, *args):
+        AsyncRecorder.t0 = time.time()
+
         try:
             track = TrackInfo(properties["Metadata"])
         except KeyError:

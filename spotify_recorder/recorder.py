@@ -25,6 +25,8 @@ from spotify_recorder.track import TrackInfo
 
 class AsyncRecorder:
 
+    t0 = 0
+
     def __init__(self, track, config):
         self.audio_param = dict()
         self.config = config
@@ -33,10 +35,11 @@ class AsyncRecorder:
         self.track = track
 
     def _record(self):
-        print("Start recording '%s'" % str(self.track))
 
         # TODO: make audio device configurable
         with sd.RawInputStream(channels=2, dtype="int16") as stream:
+            print("Start recording '%s' (after %.3f s)" %
+                  (str(self.track), time.time() - self.t0))
             while not self.interrupt.is_set():
                 buffer, _ = stream.read(stream.read_available)
                 self.frames.append(buffer)
