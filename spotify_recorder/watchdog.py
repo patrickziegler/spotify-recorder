@@ -61,7 +61,7 @@ class DBusWatchdog:
         self.current_recorder = AsyncRecorder(self.current_track, config)
         self.config = config
 
-    def onPropertiesChanged(self, interface, properties, *args):
+    def on_properties_changed(self, interface, properties, *args):
         AsyncRecorder.t0 = time.time()
 
         try:
@@ -103,7 +103,7 @@ class DBusWatchdog:
         print("Watchdog is monitoring '%s'" % bus_name)
 
         mpris = bus.get(bus_name, "/org/mpris/MediaPlayer2")
-        mpris.PropertiesChanged.connect(self.onPropertiesChanged)
+        mpris.PropertiesChanged.connect(self.on_properties_changed)
 
         try:
             loop = GLib.MainLoop()
